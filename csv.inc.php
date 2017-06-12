@@ -17,9 +17,7 @@ class CSV
     protected $arrayFail = array(); // Failed to input to DB
     protected $arraySkipped = array(); // Did not meet import rules
     protected $num = 0;
-//See Source 1 for above
-//See Source at bottom for references to sources material that helped compile the code
-//See source 4 for OOP methods
+
     protected $fieldTypes = array('string', 'string', 'string', 'int', 'float',
         'boolean');
 
