@@ -18,28 +18,21 @@ class CSV
     protected $arraySkipped = array(); // Did not meet import rules
     protected $num = 0;
     protected $testMode;
-
     protected $fieldTypes = array('string', 'string', 'string', 'int', 'float',
         'boolean');
-
     protected $discontinued = array('y', 'Y', 'yes', 'Yes', 'YES', 'discontinued', 'Discontinued'
     , 'DISCONTINUED'); // Possible positive values for the discontinued column
-
     public function __construct($tempFile, $testOne = FALSE) //See Source 2
     {
-        $this->fileLoc = $tempFile;
-        $this->testMode = $testOne;
-        $this->arrayIn = self::csvToArray($this->fileLoc); // See Source 3
-        $this->arrayOut = self::length($this->arrayIn);  // Checking each row length
-        $this->arrayOut = self::incorrectValues($this->arrayError); // Checking values such as special characters
-        $this->arrayOut = self::rules($this->arrayOut); // Checking arrays against import rules
-        $this->arrayOut = self::highValue($this->arrayOut);
-
-
+        $this->fileLoc= $tempFile;
+        $this->testMode= $testOne;
+        $this->arrayIn= self::csvToArray($this->fileLoc); // See Source 3
+        $this->arrayOut= self::length($this->arrayIn);  // Checking each row length
+        $this->arrayOut= self::incorrectValues($this->arrayError); // Checking values such as special characters
+        $this->arrayOut= self::rules($this->arrayOut); // Checking arrays against import rules
+        $this->arrayOut= self::highValue($this->arrayOut);
         self::dbInsert($this->arrayOut);
     }
-
-
     protected function csvToArray($csv = 'stock.csv')// Access and extract CSV
     {
         if (!file_exists($csv) || !is_readable($csv)) {
@@ -50,8 +43,7 @@ class CSV
             while (($row = fgetcsv($file)) !== FALSE) {
                 if (!$this->fieldTitles) {
                     $this->fieldTitles = $row; // Store titles in the code to be placed when required
-                    $this->num = count($this->fieldTitles);
-
+                    $this->num= count($this->fieldTitles);
                 } else {
 
                     $arrOut[] = $row;
@@ -63,9 +55,7 @@ class CSV
         }
         return $arrOut;
     }
-
 // end of csvToArray
-
     protected function length($arrIn) //checks if the correct amount of fields are present
     {
         $arrOut = array();
@@ -78,18 +68,14 @@ class CSV
         }
         return $arrOut;
     }
-
     private function parseRow($row, $types)
     {
         for ($i = 0; $i < count($types); $i++) {
             if ($types[$i] === 'string') {
-
-                $row[$i] = iconv($this->sourceCharSet,
+                $row[$i]= iconv($this->sourceCharSet,
                     $this->databaseCharSet . "//TRANSLIT", (string)$row[$i]);
-
             } else if ($types[$i] === 'int') {
                 $row[$i] = (int)$row[$i];
-
             } else if ($types[$i] === 'float') {
                 $row[$i] = (float)preg_replace("/([^0-9\\.])/i", "", $row[$i]);
             } else if ($types[$i] === 'boolean') {
@@ -98,9 +84,7 @@ class CSV
         }
         return $row;
     }
-
     protected function incorrectValues($arrIn)
-
     {
         $arrayTemp = array();
         unset($this->arrayError);
@@ -116,7 +100,6 @@ class CSV
         $arrOut = self::length($arrayTemp); // Checking previous rules and reapplying
         return array_merge($arrOut, $this->arrayOut);
     }
-
     private function fieldValues($row, $incorrectCommas)
     {
         $tempRow = $row;
@@ -140,7 +123,6 @@ class CSV
         }
         return $arrOut;
     }
-
     protected function rules($arrIn)
     {
         $arrOut = array();
@@ -152,18 +134,11 @@ class CSV
             } else {
 
                 $arrOut[] = $row;
-
             }
-
         }
         return $arrOut;
-
-
     }
-
     public function highValue($arrIn) // High value check, any Value in row 4 over 1000 will be skipped
-
-
     {
         $arrOut = array();
         foreach ($arrIn as $row) {
@@ -172,15 +147,10 @@ class CSV
                 $this->arraySkipped[] = $row;
             } else {
                 $arrOut[] = $row;
-
-
             }
         }
-
-
         return $arrOut;
     }
-
     protected function dbInsert($arrIn) // Processes the arrays results using a switch statement
     {
         self::setdbConfig($this->dbConfig);
@@ -209,7 +179,6 @@ class CSV
         }
         return TRUE;
     }
-
     protected function setdbConfig($dbConfig) // Preparing database config
     {
         if (file_exists($dbConfig) && is_readable($dbConfig)) {
@@ -219,54 +188,38 @@ class CSV
         }
         return TRUE;
     }
-
     public function getArrayIn()
-
     {
         return (isset($this->arrayIn)) ? $this->arrayIn : NULL;
     }
-
     public function getArrayError()
-
     {
         return (isset($this->arrayError)) ? $this->arrayError : NULL;
     }
-
     public function getArrayOut()
     {
         return (isset($this->arrayOut)) ? $this->arrayOut : NULL;
     }
-
     public function getArraySkipped()
     {
         return (isset($this->arraySkipped)) ? $this->arraySkipped : NULL;
     }
-
     public function getArrayExists()
     {
         return (isset($this->arrayExists)) ? $this->arrayExists : NULL;
     }
-
     public function getArrayFail()
     {
         return (isset($this->arrayFail)) ? $this->arrayFail : NULL;
     }
-
     public function getArraySuccess()
-
-
     {
         return (isset($this->arraySuccess)) ? $this->arraySuccess : NULL;
     }
-
     public function getNum()
-
-
     {
         return $this->num;
-
     }
-
     public function getOutput()
     {
         $stringOutput = '';
@@ -318,13 +271,10 @@ class CSV
         }
         return $stringOutput;
     }
-
     private function printToScreen($row) //See source 5
     {
         return "|" . $row[0] . " |" . str_pad($row[1], 15) . "|" . str_pad($row[2], 38) . "|" . str_pad($row[3], 2) . "|" . str_pad($row[4], 8) . "|" . (($row[5]) ? "      " : "Active") . "|" . PHP_EOL;
     }
-
-
 }
 
 
