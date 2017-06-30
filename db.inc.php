@@ -16,23 +16,18 @@ class database
     protected $stmtPresent;
     // Set options
     protected $options = array(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);//throw an exception if an error occurs.
-
     public function __construct($tbl)
     {
         $dsn = 'mysql:host=' . $this->dbhost . ';dbname=' . $this->dbname;
-
         try {
             $this->connectdb = new PDO($dsn, $this->dbusername, $this->dbpassword, $this->options);// use a try/catch block to attempt to make a connection, or handle any exceptions if an error occurs.
         } catch (Exception $exc) {
             $this->err = 'Connection failed: ' . $exc->getMessage();
         }
-
         // Prepare queries
         self::prepareInsert($tbl);
         self::preparePresent($tbl);
-
     }
-
     //connect to DB
     public function prepareInsert($tableName)
     {
@@ -41,19 +36,15 @@ class database
         $this->stmtInsert = $this->connectdb->prepare($qryInsert);
         return TRUE;
     }
-
     private function preparePresent($table)
     {
         $qryPresent = 'SELECT COUNT(*) from ' . $table . ' WHERE strProductCode = ?';
         $this->stmtPresent = $this->connectdb->prepare($qryPresent);
         return True;
     }
-
     //transaction process
-
     public function executeInsert($row)//inserts array, if it isn't already there
     {
-
         $arrayIns = array(
             "productCode" => $row[0],
             "productName" => $row[1],
@@ -65,7 +56,6 @@ class database
             try {
                 $arr1 = array('success', array_values($arrayIns));
                 $result = $this->stmtInsert->execute($arrayIns);
-
             } catch (Exception $exc) {
                 echo $arrayIns[0] . ' was not inserted ' . $exc->getMessage() . PHP_EOL;
                 $arr1 = array('fail', array_values($arrayIns));
@@ -75,28 +65,20 @@ class database
         }
         return $arr1;
     }
-
     public function executePresent($code)
-
     {
-
         $this->stmtPresent->execute(array($code));
         return $this->stmtPresent->fetchColumn();
-
     }
-
     public function beginTransaction()
     {
         return $this->connectdb->beginTransaction();
     }
-
     //check for the existence in DB
-
     public function CommitTransaction()
     {
         return $this->connectdb->commit();
     }
-
     public function cancelTransaction()
     {
         return $this->connectdb->rollBack();
