@@ -1,6 +1,5 @@
 <?php
 
-
 class CSV
 {
     protected $fileLoc = 'stock.csv'; // The File Location
@@ -45,7 +44,6 @@ class CSV
                     $this->fieldTitles = $row; // Store titles in the code to be placed when required
                     $this->num= count($this->fieldTitles);
                 } else {
-
                     $arrOut[] = $row;
                 }
             }
@@ -84,7 +82,7 @@ class CSV
         }
         return $row;
     }
-    protected function incorrectValues($arrIn)
+            protected function incorrectValues($arrIn)
     {
         $arrayTemp = array();
         unset($this->arrayError);
@@ -92,7 +90,6 @@ class CSV
             if (count($row) > $this->num) {
                 $incorrectCommas = count($row) - $this->num;
                 $arrayTemp[] = self::fieldValues($row, $incorrectCommas);
-
             } else {
                 $this->arrayError[] = $row;
             }
@@ -105,7 +102,6 @@ class CSV
         $tempRow = $row;
         for ($i = 1; $i < count($tempRow); $i++) {
             // Check for a space before altering
-
             if (substr($tempRow[$i], 0, 1) === ' ') {
                 if ($i === 1 || (substr($tempRow[$i - 1], 0, 1) !== ' ' && $i !== 1)) { //Checking Previous fields
                     $tempRow[$i - 1] = '"' . $tempRow[$i - 1];
@@ -132,7 +128,6 @@ class CSV
             if ($row[3] < 10 && $row[4] < 5.0) {
                 $this->arraySkipped[] = $row;
             } else {
-
                 $arrOut[] = $row;
             }
         }
@@ -142,7 +137,6 @@ class CSV
     {
         $arrOut = array();
         foreach ($arrIn as $row) {
-
             if ($row [4] > 1000) {
                 $this->arraySkipped[] = $row;
             } else {
@@ -175,7 +169,7 @@ class CSV
         if ($this->testMode) {
             $salegroupdb->cancelTransaction();
         } else {
-            $salegroupdb->CommitTransaction();
+            $salegroupdb->commitTransaction();
         }
         return TRUE;
     }
@@ -276,11 +270,6 @@ class CSV
         return "|" . $row[0] . " |" . str_pad($row[1], 15) . "|" . str_pad($row[2], 38) . "|" . str_pad($row[3], 2) . "|" . str_pad($row[4], 8) . "|" . (($row[5]) ? "      " : "Active") . "|" . PHP_EOL;
     }
 }
-
-
-
-
-
 /**
  * Created by PhpStorm.
  * User: Jenni
@@ -295,6 +284,5 @@ class CSV
     5:http://php.net/manual/en/function.mysql-field-name.php: Print row help
     6:http://php.net/manual/en/function.str-pad.php: Ref 1 to padding
     7:https://www.w3schools.com/php/func_string_str_pad.asp: Ref 2 to padding
-
  *
  */

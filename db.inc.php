@@ -33,7 +33,11 @@ class database
     {
         $qryInsert = 'INSERT INTO ' . $tableName . ' (strProductCode, strProductName, strProductDesc, intProductStock, decProductCost, dtmAdded, dtmDiscontinued) '
             . 'VALUES (:code, :name, :description, :stock, :cost, CURRENT_TIMESTAMP, :discontinued)';
-        $this->stmtInsert = $this->connectdb->prepare($qryInsert);
+        try {
+            $this->stmtInsert = $this->connectdb->prepare($qryInsert);
+        } catch(Exception $exc){
+            $this->err = 'Connection failed: ' . $exc->getMessage();
+        }
         return TRUE;
     }
     private function preparePresent($table)
@@ -75,7 +79,7 @@ class database
         return $this->connectdb->beginTransaction();
     }
     //check for the existence in DB
-    public function CommitTransaction()
+    public function commitTransaction()
     {
         return $this->connectdb->commit();
     }
