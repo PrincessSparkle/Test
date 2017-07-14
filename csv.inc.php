@@ -18,21 +18,23 @@ class CSV
     protected $columnLength = array();
     protected $num = 0;
     protected $testMode;
+    private $lengths;
     protected $fieldTypes = array('string', 'string', 'string', 'int', 'float',
         'boolean');
     protected $discontinued = array('y', 'Y', 'yes', 'Yes', 'YES', 'discontinued', 'Discontinued'
     , 'DISCONTINUED'); // Possible positive values for the discontinued column
     public function __construct($tempFile, $testOne = FALSE) //See Source 2
     {
-        $this->fileLoc= $tempFile;
-        $this->testMode= $testOne;
-        $this->arrayIn= self::csvToArray($this->fileLoc); // See Source 3
-        $this->arrayOut= self::length($this->arrayIn);  // Checking each row length
-        $this->arrayOut= self::incorrectValues($this->arrayError); // Checking values such as special characters
-        $this->arrayOut= self::rules($this->arrayOut); // Checking arrays against import rules
-        $this->arrayOut= self::highValue($this->arrayOut);
+        $this->fileLoc = $tempFile;
+        $this->testMode = $testOne;
+        $this->arrayIn = self::csvToArray($this->fileLoc); // See Source 3
+        $this->arrayOut = self::length($this->arrayIn);  // Checking each row length
+        $this->arrayOut = self::incorrectValues($this->arrayError); // Checking values such as special characters
+        $this->arrayOut = self::rules($this->arrayOut); // Checking arrays against import rules
+        $this->arrayOut = self::highValue($this->arrayOut);
 
         self::dbInsert($this->arrayOut);
+        $this->columnLength($tempFile);
     }
     protected function csvToArray($csv = 'stock.csv')// Access and extract CSV
     {
@@ -57,21 +59,22 @@ class CSV
     }
 // end of csvToArray
     protected function columnLength($csv = 'stock.csv')
-{
-    $file = fopen($csv,'r');
-    $lengths = array();
-    while($row = fgetcsv($file)){
-        foreach($row as $i => $column){
-            if(!isset($lengths[$i])){
-                $lengths[$i] = strlen($column);
-                continue;
-            }
-            if(strlen($column) > $lengths[$i]){
-                $lengths[$i] = strlen($column);
+    {
+        $file = fopen($csv,'r');
+        $lengths = array();
+        while($row = fgetcsv($file)){
+            foreach($row as $i => $column){
+                if(!isset($lengths[$i])){
+                    $lengths[$i] = strlen($column);
+                    continue;
+                }
+                if(strlen($column) > $lengths[$i]){
+                    $lengths[$i] = strlen($column);
+                }
             }
         }
+        $this->lengths = $lengths;
     }
-}
     protected function length($arrIn) //checks if the correct amount of fields are present
     {
         $arrOut = array();
@@ -232,12 +235,11 @@ class CSV
     {
         return $this->num;
     }
-    private function getColumnLength(){
-        return(isset($this->columnLength))? $this->columnLength : 20;
+    private function getColumnLength($i){
+        return(isset($this->lengths[$i]))? $this->lengths[$i] : 20;
     }
     public function getOutput()
     {
-        $this->getColumnLength();
         $stringOutput = '';
         if ($this->testMode) {
             $stringOutput .= str_pad("test", 20, "-", //See Source 6-7
@@ -289,7 +291,7 @@ class CSV
     }
     private function printToScreen($row) //See source 5
     {
-        return "|" . $row[0] . " |" . str_pad($row[1], 15) . "|" . str_pad($row[2], 38) . "|" . str_pad($row[3], 2) . "|" . str_pad($row[4], 8) . "|" . (($row[5]) ? "      " : "Active") . "|" . PHP_EOL;
+        return "|" . $row[0] . " |" . str_pad($row[1], $this->getColumnLength(1)) . "|" . str_pad($row[2], $this->getColumnLength(2)) . "|" . str_pad($row[3], $this->getColumnLength(3)) . "|" . str_pad($row[4], $this->getColumnLength(4)) . "|" . (($row[5]) ? "      " : "Active") . "|" . PHP_EOL;
     }
 }
 /**
