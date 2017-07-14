@@ -1,8 +1,10 @@
 <?php
-
-/*DB class
-Open a connect to the database.
-for source used see bottom*/
+/**
+ * Class database
+ *
+ * @property PDOStatement stmtInsert
+ * @property PDOStatement stmtPresent
+ */
 
 class database
 {
@@ -35,10 +37,11 @@ class database
             . 'VALUES (:code, :name, :description, :stock, :cost, CURRENT_TIMESTAMP, :discontinued)';
         try {
             $this->stmtInsert = $this->connectdb->prepare($qryInsert);
+            return true;
         } catch(Exception $exc){
             $this->err = 'Connection failed: ' . $exc->getMessage();
+            return false;
         }
-        return TRUE;
     }
     private function preparePresent($table)
     {
@@ -59,7 +62,7 @@ class database
         if (!self::executePresent($arrayIns['code'])) {
             try {
                 $arr1 = array('success', array_values($arrayIns));
-                $result = $this->stmtInsert->execute($arrayIns);
+                $this->stmtInsert->execute($arrayIns);
             } catch (Exception $exc) {
                 echo $arrayIns[0] . ' was not inserted ' . $exc->getMessage() . PHP_EOL;
                 $arr1 = array('fail', array_values($arrayIns));
@@ -88,7 +91,6 @@ class database
         return $this->connectdb->rollBack();
     }
 }
-
 /*http://culttt.com/2012/10/01/roll-your-own-pdo-php-class/ Used as a framework
 */
 
