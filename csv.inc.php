@@ -38,7 +38,7 @@ class CSV
     }
     protected function csvToArray($csv = 'stock.csv')// Access and extract CSV
     {
-        if (!file_exists($csv) || !is_readable($csv)) {
+        if (!file_exists($csv)) {
             throw new Exception("CSV file Error" . PHP_EOL);
         }
         $arrOut = array();

@@ -8,9 +8,9 @@
 
 class database
 {
-    protected $dbhost = 'db';
-    protected $dbusername = 'root';
-    protected $dbpassword = 'password';
+    protected $dbhost = 'localhost';
+    protected $dbusername = 'admin';
+    protected $dbpassword = 'iu6zJOCRTs1r';
     protected $dbname = 'salegroup_test';
     protected $connectdb;
     protected $err;
@@ -23,12 +23,15 @@ class database
         $dsn = 'mysql:host=' . $this->dbhost . ';dbname=' . $this->dbname;
         try {
             $this->connectdb = new PDO($dsn, $this->dbusername, $this->dbpassword, $this->options);// use a try/catch block to attempt to make a connection, or handle any exceptions if an error occurs.
-        } catch (Exception $exc) {
+        } catch (PDOException $exc) {
             $this->err = 'Connection failed: ' . $exc->getMessage();
+            exit($this->err);
         }
         // Prepare queries
-        self::prepareInsert($tbl);
-        self::preparePresent($tbl);
+        if ($this->connectdb) {
+            self::prepareInsert($tbl);
+            self::preparePresent($tbl);
+        }
     }
     //connect to DB
     public function prepareInsert($tableName)
