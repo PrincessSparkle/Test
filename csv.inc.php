@@ -103,7 +103,7 @@ class CSV
         }
         return $row;
     }
-            protected function incorrectValues($arrIn)
+    protected function incorrectValues($arrIn)
     {
         $arrayTemp = array();
         unset($this->arrayError);

@@ -23,21 +23,19 @@ class database
         $dsn = 'mysql:host=' . $this->dbhost . ';dbname=' . $this->dbname;
         try {
             $this->connectdb = new PDO($dsn, $this->dbusername, $this->dbpassword, $this->options);// use a try/catch block to attempt to make a connection, or handle any exceptions if an error occurs.
-        } catch (PDOException $exc) {
+        } catch (Exception $exc) {
             $this->err = 'Connection failed: ' . $exc->getMessage();
             exit($this->err);
         }
         // Prepare queries
-        if ($this->connectdb) {
-            self::prepareInsert($tbl);
-            self::preparePresent($tbl);
-        }
+        $this->prepareInsert($tbl);
+        $this->preparePresent($tbl);
     }
     //connect to DB
     public function prepareInsert($tableName)
     {
         $qryInsert = 'INSERT INTO ' . $tableName . ' (strProductCode, strProductName, strProductDesc, intProductStock, decProductCost, dtmAdded, dtmDiscontinued) '
-            . 'VALUES (:code, :name, :description, :stock, :cost, CURRENT_TIMESTAMP, :discontinued)';
+            . 'VALUES (:productCode, :productName, :productDescription, :stockLevel, :productCost, CURRENT_TIMESTAMP, :discontinuedStatus)';
         try {
             $this->stmtInsert = $this->connectdb->prepare($qryInsert);
             return true;
@@ -62,10 +60,12 @@ class database
             "stockLevel" => $row[3],
             "productCost" => $row[4],
             "discontinuedStatus" => ($row[5]) ? date('Y-m-d H:i:s') : NULL);
-        if (!self::executePresent($arrayIns['code'])) {
+        if (!$this->executePresent($arrayIns['productCode'])) {
             try {
                 $arr1 = array('success', array_values($arrayIns));
-                $this->stmtInsert->execute($arrayIns);
+                if(!$this->stmtInsert->execute($arrayIns)){
+                    print_r($this->stmtInsert->errorInfo());
+                };
             } catch (Exception $exc) {
                 echo $arrayIns[0] . ' was not inserted ' . $exc->getMessage() . PHP_EOL;
                 $arr1 = array('fail', array_values($arrayIns));
