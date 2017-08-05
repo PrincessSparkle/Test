@@ -1,6 +1,5 @@
 <?php
 
-
 class CSV
 {
     protected $fileLoc = 'stock.csv'; // The File Location
@@ -16,26 +15,30 @@ class CSV
     protected $arrayError = array(); //Invalid Field
     protected $arrayFail = array(); // Failed to input to DB
     protected $arraySkipped = array(); // Did not meet import rules
+    protected $columnLength = array();
     protected $num = 0;
     protected $testMode;
+    private $lengths;
     protected $fieldTypes = array('string', 'string', 'string', 'int', 'float',
         'boolean');
     protected $discontinued = array('y', 'Y', 'yes', 'Yes', 'YES', 'discontinued', 'Discontinued'
     , 'DISCONTINUED'); // Possible positive values for the discontinued column
     public function __construct($tempFile, $testOne = FALSE) //See Source 2
     {
-        $this->fileLoc= $tempFile;
-        $this->testMode= $testOne;
-        $this->arrayIn= self::csvToArray($this->fileLoc); // See Source 3
-        $this->arrayOut= self::length($this->arrayIn);  // Checking each row length
-        $this->arrayOut= self::incorrectValues($this->arrayError); // Checking values such as special characters
-        $this->arrayOut= self::rules($this->arrayOut); // Checking arrays against import rules
-        $this->arrayOut= self::highValue($this->arrayOut);
+        $this->fileLoc = $tempFile;
+        $this->testMode = $testOne;
+        $this->arrayIn = self::csvToArray($this->fileLoc); // See Source 3
+        $this->arrayOut = self::length($this->arrayIn);  // Checking each row length
+        $this->arrayOut = self::incorrectValues($this->arrayError); // Checking values such as special characters
+        $this->arrayOut = self::rules($this->arrayOut); // Checking arrays against import rules
+        $this->arrayOut = self::highValue($this->arrayOut);
+
         self::dbInsert($this->arrayOut);
+        $this->columnLength($tempFile);
     }
     protected function csvToArray($csv = 'stock.csv')// Access and extract CSV
     {
-        if (!file_exists($csv) || !is_readable($csv)) {
+        if (!file_exists($csv)) {
             throw new Exception("CSV file Error" . PHP_EOL);
         }
         $arrOut = array();
@@ -43,9 +46,8 @@ class CSV
             while (($row = fgetcsv($file)) !== FALSE) {
                 if (!$this->fieldTitles) {
                     $this->fieldTitles = $row; // Store titles in the code to be placed when required
-                    $this->num= count($this->fieldTitles);
+                    $this->num = count($this->fieldTitles);
                 } else {
-
                     $arrOut[] = $row;
                 }
             }
@@ -56,6 +58,23 @@ class CSV
         return $arrOut;
     }
 // end of csvToArray
+    protected function columnLength($csv = 'stock.csv')
+    {
+        $file = fopen($csv,'r');
+        $lengths = array();
+        while($row = fgetcsv($file)){
+            foreach($row as $i => $column){
+                if(!isset($lengths[$i])){
+                    $lengths[$i] = strlen($column);
+                    continue;
+                }
+                if(strlen($column) > $lengths[$i]){
+                    $lengths[$i] = strlen($column);
+                }
+            }
+        }
+        $this->lengths = $lengths;
+    }
     protected function length($arrIn) //checks if the correct amount of fields are present
     {
         $arrOut = array();
@@ -84,7 +103,7 @@ class CSV
         }
         return $row;
     }
-    protected function incorrectValues($arrIn)
+            protected function incorrectValues($arrIn)
     {
         $arrayTemp = array();
         unset($this->arrayError);
@@ -92,7 +111,6 @@ class CSV
             if (count($row) > $this->num) {
                 $incorrectCommas = count($row) - $this->num;
                 $arrayTemp[] = self::fieldValues($row, $incorrectCommas);
-
             } else {
                 $this->arrayError[] = $row;
             }
@@ -105,7 +123,6 @@ class CSV
         $tempRow = $row;
         for ($i = 1; $i < count($tempRow); $i++) {
             // Check for a space before altering
-
             if (substr($tempRow[$i], 0, 1) === ' ') {
                 if ($i === 1 || (substr($tempRow[$i - 1], 0, 1) !== ' ' && $i !== 1)) { //Checking Previous fields
                     $tempRow[$i - 1] = '"' . $tempRow[$i - 1];
@@ -132,7 +149,6 @@ class CSV
             if ($row[3] < 10 && $row[4] < 5.0) {
                 $this->arraySkipped[] = $row;
             } else {
-
                 $arrOut[] = $row;
             }
         }
@@ -142,7 +158,6 @@ class CSV
     {
         $arrOut = array();
         foreach ($arrIn as $row) {
-
             if ($row [4] > 1000) {
                 $this->arraySkipped[] = $row;
             } else {
@@ -175,7 +190,7 @@ class CSV
         if ($this->testMode) {
             $salegroupdb->cancelTransaction();
         } else {
-            $salegroupdb->CommitTransaction();
+            $salegroupdb->commitTransaction();
         }
         return TRUE;
     }
@@ -220,11 +235,14 @@ class CSV
     {
         return $this->num;
     }
+    private function getColumnLength($i){
+        return(isset($this->lengths[$i]))? $this->lengths[$i] : 20;
+    }
     public function getOutput()
     {
         $stringOutput = '';
         if ($this->testMode) {
-            $stringOutput .= str_pad("test", 80, "-", //See Source 6-7
+            $stringOutput .= str_pad("test", 20, "-", //See Source 6-7
                     STR_PAD_BOTH) . PHP_EOL;
         }
         $stringOutput .= str_pad("Stock Processed: ", 20) . count($this->arrayIn) . PHP_EOL;
@@ -273,14 +291,9 @@ class CSV
     }
     private function printToScreen($row) //See source 5
     {
-        return "|" . $row[0] . " |" . str_pad($row[1], 15) . "|" . str_pad($row[2], 38) . "|" . str_pad($row[3], 2) . "|" . str_pad($row[4], 8) . "|" . (($row[5]) ? "      " : "Active") . "|" . PHP_EOL;
+        return "|" . $row[0] . " |" . str_pad($row[1], $this->getColumnLength(1)) . "|" . str_pad($row[2], $this->getColumnLength(2)) . "|" . str_pad($row[3], $this->getColumnLength(3)) . "|" . str_pad($row[4], $this->getColumnLength(4)) . "|" . (($row[5]) ? "      " : "Active") . "|" . PHP_EOL;
     }
 }
-
-
-
-
-
 /**
  * Created by PhpStorm.
  * User: Jenni
@@ -295,6 +308,5 @@ class CSV
     5:http://php.net/manual/en/function.mysql-field-name.php: Print row help
     6:http://php.net/manual/en/function.str-pad.php: Ref 1 to padding
     7:https://www.w3schools.com/php/func_string_str_pad.asp: Ref 2 to padding
-
  *
  */

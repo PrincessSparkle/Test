@@ -1,14 +1,16 @@
 <?php
-
-/*DB class
-Open a connect to the database.
-for source used see bottom*/
+/**
+ * Class database
+ *
+ * @property PDOStatement stmtInsert
+ * @property PDOStatement stmtPresent
+ */
 
 class database
 {
-    protected $dbhost = 'db';
-    protected $dbusername = 'root';
-    protected $dbpassword = 'password';
+    protected $dbhost = 'localhost';
+    protected $dbusername = 'admin';
+    protected $dbpassword = 'iu6zJOCRTs1r';
     protected $dbname = 'salegroup_test';
     protected $connectdb;
     protected $err;
@@ -21,20 +23,28 @@ class database
         $dsn = 'mysql:host=' . $this->dbhost . ';dbname=' . $this->dbname;
         try {
             $this->connectdb = new PDO($dsn, $this->dbusername, $this->dbpassword, $this->options);// use a try/catch block to attempt to make a connection, or handle any exceptions if an error occurs.
-        } catch (Exception $exc) {
+        } catch (PDOException $exc) {
             $this->err = 'Connection failed: ' . $exc->getMessage();
+            exit($this->err);
         }
         // Prepare queries
-        self::prepareInsert($tbl);
-        self::preparePresent($tbl);
+        if ($this->connectdb) {
+            self::prepareInsert($tbl);
+            self::preparePresent($tbl);
+        }
     }
     //connect to DB
     public function prepareInsert($tableName)
     {
         $qryInsert = 'INSERT INTO ' . $tableName . ' (strProductCode, strProductName, strProductDesc, intProductStock, decProductCost, dtmAdded, dtmDiscontinued) '
             . 'VALUES (:code, :name, :description, :stock, :cost, CURRENT_TIMESTAMP, :discontinued)';
-        $this->stmtInsert = $this->connectdb->prepare($qryInsert);
-        return TRUE;
+        try {
+            $this->stmtInsert = $this->connectdb->prepare($qryInsert);
+            return true;
+        } catch(Exception $exc){
+            $this->err = 'Connection failed: ' . $exc->getMessage();
+            return false;
+        }
     }
     private function preparePresent($table)
     {
@@ -55,7 +65,7 @@ class database
         if (!self::executePresent($arrayIns['code'])) {
             try {
                 $arr1 = array('success', array_values($arrayIns));
-                $result = $this->stmtInsert->execute($arrayIns);
+                $this->stmtInsert->execute($arrayIns);
             } catch (Exception $exc) {
                 echo $arrayIns[0] . ' was not inserted ' . $exc->getMessage() . PHP_EOL;
                 $arr1 = array('fail', array_values($arrayIns));
@@ -75,7 +85,7 @@ class database
         return $this->connectdb->beginTransaction();
     }
     //check for the existence in DB
-    public function CommitTransaction()
+    public function commitTransaction()
     {
         return $this->connectdb->commit();
     }
@@ -84,7 +94,6 @@ class database
         return $this->connectdb->rollBack();
     }
 }
-
 /*http://culttt.com/2012/10/01/roll-your-own-pdo-php-class/ Used as a framework
 */
 
