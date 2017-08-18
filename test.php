@@ -5,9 +5,7 @@ $opt = getopt("f:t");
 setlocale(LC_ALL, "en_GB.UTF-8");
 // load requested classes
 
-include 'csv.inc.php';
-include 'db.inc.php';
-include 'dbConfig.php';
+include 'bootstrap.php';
 
 if (!isset($opt["f"])) {
     exit("No input file");

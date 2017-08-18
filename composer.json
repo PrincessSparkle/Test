@@ -1,0 +1,14 @@
+{
+    "name": "princesssparkle/test",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Jennifer O'Connor",
+            "email": "jenjazzoconnor@gmail.com"
+        }
+    ],
+    "require": {},
+    "require-dev": {
+        "phpunit/phpunit": "^5.7"
+    }
+}

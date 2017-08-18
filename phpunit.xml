@@ -3,6 +3,7 @@
         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/6.3/phpunit.xsd"
         backupGlobals="true"
         backupStaticAttributes="false"
+        bootstrap="bootstrap.php"
         cacheTokens="false"
         colors="true"
         convertErrorsToExceptions="true"
@@ -27,4 +28,22 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
+<logging>
+    <log type="coverage-html" target="coverage.html">
+    </log>
+</logging>
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">/app</directory>
+            <exclude>
+                <file>
+                   /app/bootstrap.php
+                </file>
+                <file>
+                    /app/test.php
+                </file>
+                <directory suffix=".php">/app/tests</directory>
+            </exclude>
+        </whitelist>
+    </filter>
 </phpunit>
